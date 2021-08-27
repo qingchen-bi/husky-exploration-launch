@@ -1,0 +1,52 @@
+<!--  Launch file for signle robot on Gazebo -->
+<launch>
+<env name="GAZEBO_RESOURCE_PATH" value="$(find rrt_exploration_tutorials)/launch/includes/meshes"/>
+<include file="$(find gazebo_ros)/launch/empty_world.launch">
+<arg name="use_sim_time" value="true"/>
+<arg name="debug" value="false"/>
+<!-- 自己的世界 根据情况修改-->
+<arg name="world_name" value="$(find gazebo_cave_world)/worlds/my_cave03_myexploration3.world"/>
+</include>
+
+<group ns="/robot_1">
+
+  <include file="$(find husky_gazebo)/launch/spawn_husky_my.launch">
+    <arg name="robot_name" value="robot_1"/>
+    <arg name="x" value="2.0" />
+    <arg name="y" value="-0.0" />
+    <arg name="yaw" value="0.0" />
+    <arg name="laser_enabled" value="true"/>
+    <arg name="laser_secondary_enabled" value="true"/>
+    <arg name="laser_3d_enabled" value="true"/>
+    <arg name="realsense_enabled" value="true"/>
+    <arg name="robot_namespace" value="robot_1"/>
+  </include>
+
+  <!--  ****** Localization 用于ground_truth 可以删掉不用***** --> 
+  <node pkg="fake_localization" type="fake_localization" name="fake_localization" clear_params="true" output="screen">
+      <param name="odom_frame_id" value="robot_1/odom" />
+      <param name="global_frame_id" value="robot_1/map" />
+      <param name="base_frame_id" value="robot_1/base_link" />
+  </node> 
+
+  <include file="$(find rrt_exploration_tutorials)/launch/includes/move_baseSafe_teb_husky.launch">
+    <arg name="namespace" value="robot_1"/>
+  </include> 
+
+  <!-- 雷达过滤器 可以删掉不用-->
+  <!-- <node pkg = "laser_filters" type="scan_to_scan_filter_chain" name = "laser_filter">
+    <rosparam command = "load" file = "$(find husky_control)/config/my_laser_config.yaml" />
+  </node> -->
+
+</group>
+
+
+<node pkg="rviz" type="rviz" name="rviz" args="-d $(find rrt_exploration_tutorials)/launch/includes/rviz_config/single_husky.rviz">
+  <remap from="move_base_simple/goal" to="robot_1/move_base_simple/goal"/>
+</node>
+
+</launch>
+
+
+
+
